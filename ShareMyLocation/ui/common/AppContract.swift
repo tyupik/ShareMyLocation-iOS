@@ -13,8 +13,16 @@ struct AppUiState {
 /// Системные события корневой навигации.
 enum AppIntent {
     /// Аутентификация выполнена — нужно решить, куда вести дальше: онбординг или Main.
-    /// Придёт из AuthScreen в этапе 2.
     case authCompleted
+
+    /// Онбординг завершён (профиль сохранён): повторный resolve сессии, на этот раз
+    /// с отправкой Effect (целевой экран — Main).
+    case onboardingCompleted
+
+    /// Запрошен выход из аккаунта. Временная интеграция этапа 3 — удалить на этапе 4:
+    /// в Android выход живёт в контракте MainViewModel, здесь временно
+    /// AppViewModel просто вызывает signOut (observeAuthState сам переразрешит сессию).
+    case signOutRequested
 }
 
 /// One-off события корневой навигации: маршрутизацией занимается AppRootView.

@@ -14,6 +14,10 @@ struct AuroraField: View {
     var isSecure: Bool = false
     var textContentType: UITextContentType? = nil
 
+    /// Раскладка клавиатуры (например, .phonePad у телефона профиля); дефолт не меняет
+    /// поведение существующих полей auth.
+    var keyboardType: UIKeyboardType = .default
+
     @FocusState private var isFocused: Bool
 
     /// Видимость пароля — эфемерное UI-состояние поля (аналог rememberSaveable Android).
@@ -37,6 +41,7 @@ struct AuroraField: View {
                 .focused($isFocused)
                 .disabled(!isEnabled)
                 .textContentType(textContentType)
+                .keyboardType(keyboardType)
                 .textInputAutocapitalization(autocapitalizationMode)
                 .autocorrectionDisabled(isAutocorrectionDisabled)
                 .font(.auroraBodyLarge)

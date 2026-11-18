@@ -25,3 +25,10 @@
 - Этап 2: entitlements Sign in with Apple, ассет ic_google, компонент AuroraField.
 - CI: наблюдаемость сборки (кэш SwiftPM, таймаут, лог ошибок в артефакт), лейбл macos-latest,
   пакет GoogleMaps → googlemaps/ios-maps-sdk (GoogleMaps-iOS-SPM удалён из GitHub).
+- Этап 3: профиль и онбординг — PhoneNormalizer (порт 1:1), аватар-пайплайн (PhotosPicker /
+  камера → круглый кроп Mantis → сжатие 1024px/JPEG 0.8 → файловый кэш uid:version →
+  транзакция blob+avatarVersion в Firestore), экраны Profile и ProfileSetup(isEditMode),
+  онбординг: настоящее чтение users/{uid} в корне, hasCompletedOnboarding при сохранении;
+  временная точка входа профиля в Main-заглушке (удаляется на этапе 4).
+- Этап 3: entitlements камеры (NSCameraUsageDescription), токен auroraDanger,
+  AuroraField + keyboardType.

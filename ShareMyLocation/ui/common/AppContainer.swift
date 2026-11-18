@@ -7,6 +7,7 @@ extension Container {
         self {
             AppViewModel(
                 authInteractor: self.authInteractor(),
+                profileInteractor: self.profileInteractor(),
                 appUiConverter: self.appUiConverter(),
             )
         }

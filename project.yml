@@ -56,6 +56,7 @@ targets:
       properties:
         NSLocationWhenInUseUsageDescription: "Приложение показывает ваше местоположение друзьям, пока включён шаринг геолокации."
         NSLocationAlwaysAndWhenInUseUsageDescription: "Фоновой шаринг геолокации: друзья видят ваше местоположение в реальном времени, даже когда приложение закрыто."
+        NSCameraUsageDescription: "Приложение использует камеру, чтобы сфотографировать аватар профиля."
         UIBackgroundModes:
           - location
         UILaunchScreen: {}

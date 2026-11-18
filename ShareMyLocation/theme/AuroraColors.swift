@@ -29,6 +29,8 @@ enum AuroraColors {
     static let auroraDangerGlass = Color(hex: 0xF87171, alpha: 0.078)
     /// ARGB 0x38F87171 (α 0x38 ≈ 0.220).
     static let auroraDangerBorder = Color(hex: 0xF87171, alpha: 0.220)
+    /// Сплошной danger-акцент (текст ghost-danger кнопки; Android colorScheme.error).
+    static let auroraDanger = Color(hex: 0xF87171)
 
     /// Роли контейнеров из Android `Theme.kt`, нужные общим компонентам.
     static let auroraSurfaceVariant = Color(hex: 0x1B2440)

@@ -1,25 +1,27 @@
 import Observation
 
-/// Корневая ViewModel приложения: при старте и после входа через AuthScreen проверяет
-/// сессию, чтобы корневая навигация выбрала стартовый экран (Auth / ProfileSetup / Main).
-/// Порт resolveSession из Android AppViewModel.kt: чтение профиля users/{uid}
-/// для requiresOnboarding подключит этап 3 (конвертер вызывается с profile == nil),
+/// Корневая ViewModel приложения: при старте и после входа/онбординга проверяет сессию
+/// и документ users/{uid}, чтобы корневая навигация выбрала стартовый экран
+/// (Auth / ProfileSetup / Main). Порт resolveSession из Android AppViewModel.kt;
 /// оркестрация шаринга геолокации (LocationSharingEngine) — этап 8, здесь не трогаем.
 @MainActor
 @Observable
 final class AppViewModel {
     private(set) var state: AppUiState = .initial
 
-    /// One-off события корневой навигации: отправляются после входа через AuthScreen
-    /// (порт resolveSession(sendEffect: true) из Android).
+    /// One-off события корневой навигации: отправляются после входа (AuthScreen)
+    /// и после завершения онбординга (ProfileSetupScreen) — порт
+    /// resolveSession(sendEffect: true) из Android.
     let effects: AsyncStream<AppEffect>
     private let effectsContinuation: AsyncStream<AppEffect>.Continuation
 
     private let authInteractor: AuthInteractor
+    private let profileInteractor: ProfileInteractor
     private let appUiConverter: AppUiConverter
 
-    init(authInteractor: AuthInteractor, appUiConverter: AppUiConverter) {
+    init(authInteractor: AuthInteractor, profileInteractor: ProfileInteractor, appUiConverter: AppUiConverter) {
         self.authInteractor = authInteractor
+        self.profileInteractor = profileInteractor
         self.appUiConverter = appUiConverter
         let (stream, continuation) = AsyncStream.makeStream(
             of: AppEffect.self,
@@ -38,6 +40,18 @@ final class AppViewModel {
             Task {
                 await resolveSession(sendEffect: true)
             }
+        case .onboardingCompleted:
+            // Порт Android: ProfileSetupScreen → onCompleted → resolveSession(sendEffect: true),
+            // после сохранения hasCompletedOnboarding = true чтение даёт Main.
+            Task {
+                await resolveSession(sendEffect: true)
+            }
+        case .signOutRequested:
+            // Временная интеграция этапа 3 — удалить на этапе 4: signOut без разрешения
+            // состояния, observeAuthState сам переразрешит сессию (станет Auth).
+            Task {
+                await authInteractor.signOut()
+            }
         }
     }
 
@@ -51,13 +65,22 @@ final class AppViewModel {
         }
     }
 
-    /// Читает сессию, обновляет AppUiState; после входа (sendEffect = true) дополнительно
-    /// отправляет Effect с целевым экраном. Профиль users/{uid} добавит этап 3:
-    /// сейчас конвертер вызывается с profile == nil, поэтому requiresOnboarding всегда false
-    /// и Effect после входа — всегда navigateToMain.
+    /// Читает сессию и документ профиля, обновляет AppUiState; после входа или онбординга
+    /// (sendEffect = true) дополнительно отправляет Effect с целевым экраном.
+    /// Ошибка чтения профиля не блокирует вход: онбординг считается пройденным
+    /// (порт Android resolveSession: profile = getOrNull()).
     private func resolveSession(sendEffect: Bool) async {
         let user = await authInteractor.getCurrentUser()
-        let uiModel = appUiConverter.convert(user, nil)
+        var profile: User?
+        if let user {
+            switch await profileInteractor.getProfile() {
+            case .success(let loadedProfile):
+                profile = loadedProfile
+            case .failure(let error):
+                print("AppViewModel: Не удалось прочитать users/{uid}, пропускаем экран онбординга — \(error)")
+            }
+        }
+        let uiModel = appUiConverter.convert(user, profile)
         state = AppUiState(
             isSessionResolved: true,
             isAuthenticated: uiModel.isAuthenticated,
