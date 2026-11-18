@@ -1,18 +1,17 @@
 import Observation
 
-/// Корневая ViewModel приложения: подписывается на observeAuthState и обновляет
-/// AppUiState, чтобы корневая навигация выбрала стартовый экран
-/// (Auth / ProfileSetup / Main). Порт resolveSession из Android AppViewModel.kt;
-/// в этапе 1 сессия резолвится потоком observeAuthState (указание docs/port-plan.md),
-/// чтение профиля users/{uid} для requiresOnboarding подключит этап 3,
-/// отправку AppEffect (после входа через AuthScreen) — этап 2.
-/// Оркестрация шаринга геолокации (LocationSharingEngine) — этап 8, здесь не трогаем.
+/// Корневая ViewModel приложения: при старте и после входа через AuthScreen проверяет
+/// сессию, чтобы корневая навигация выбрала стартовый экран (Auth / ProfileSetup / Main).
+/// Порт resolveSession из Android AppViewModel.kt: чтение профиля users/{uid}
+/// для requiresOnboarding подключит этап 3 (конвертер вызывается с profile == nil),
+/// оркестрация шаринга геолокации (LocationSharingEngine) — этап 8, здесь не трогаем.
 @MainActor
 @Observable
 final class AppViewModel {
     private(set) var state: AppUiState = .initial
 
-    /// One-off события корневой навигации; отправка включается в этапе 2 вместе с AuthScreen.
+    /// One-off события корневой навигации: отправляются после входа через AuthScreen
+    /// (порт resolveSession(sendEffect: true) из Android).
     let effects: AsyncStream<AppEffect>
     private let effectsContinuation: AsyncStream<AppEffect>.Continuation
 
@@ -34,25 +33,39 @@ final class AppViewModel {
     func onIntent(_ intent: AppIntent) {
         switch intent {
         case .authCompleted:
-            // No-op этапа 1: состояние обновляет подписка на observeAuthState
-            // (сама эмиссия приходит после sign-in), повторный resolve не нужен.
-            break
+            // Порт Android AppViewModel: повторный resolve после входа, на этот раз
+            // с отправкой AppEffect (целевой экран — онбординг или Main).
+            Task {
+                await resolveSession(sendEffect: true)
+            }
         }
     }
 
-    /// Подписка на состояние аутентификации: первая эмиссия резолвит сессию,
-    /// дальнейшие — реакция на sign-in/sign-out. Профиль для requiresOnboarding
-    /// (users/{uid}) добавит этап 3: сейчас конвертер вызывается с profile == nil.
+    /// Подписка на состояние аутентификации: первая эмиссия резолвит сессию без эффекта,
+    /// дальнейшие (sign-in/sign-out) — та же реакция (как init-вызов resolveSession в Android).
     private func observeSession() {
         Task {
-            for await user in authInteractor.observeAuthState() {
-                let uiModel = appUiConverter.convert(user, nil)
-                state = AppUiState(
-                    isSessionResolved: true,
-                    isAuthenticated: uiModel.isAuthenticated,
-                    requiresOnboarding: uiModel.requiresOnboarding,
-                )
+            for await _ in authInteractor.observeAuthState() {
+                await resolveSession(sendEffect: false)
             }
+        }
+    }
+
+    /// Читает сессию, обновляет AppUiState; после входа (sendEffect = true) дополнительно
+    /// отправляет Effect с целевым экраном. Профиль users/{uid} добавит этап 3:
+    /// сейчас конвертер вызывается с profile == nil, поэтому requiresOnboarding всегда false
+    /// и Effect после входа — всегда navigateToMain.
+    private func resolveSession(sendEffect: Bool) async {
+        let user = await authInteractor.getCurrentUser()
+        let uiModel = appUiConverter.convert(user, nil)
+        state = AppUiState(
+            isSessionResolved: true,
+            isAuthenticated: uiModel.isAuthenticated,
+            requiresOnboarding: uiModel.requiresOnboarding,
+        )
+        if sendEffect {
+            let effect: AppEffect = uiModel.requiresOnboarding ? .navigateToProfileSetup : .navigateToMain
+            effectsContinuation.yield(effect)
         }
     }
 }

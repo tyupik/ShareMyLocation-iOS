@@ -18,3 +18,10 @@
 - CI: workflow `ios-build.yml` — сборка unsigned `.ipa` на macos-runner
   (xcodegen → xcodebuild → артефакт `ShareMyLocation-unsigned-ipa`).
 - Нормализация PostScript-имён шрифтов Manrope (все 5 ttf несли имя «Manrope-ExtraLight»).
+- Этап 2: экран входа — email/password, Google (GIDSignIn) и Sign in with Apple; контракт MVI
+  Auth (UiState/Intent/Effect, порт 1:1 из Android), интерактор и репозиторий (маппинг ошибок
+  FirebaseAuth/Firestore, ensureUserDocument), AuthScreen в стиле AURORA (стеклянные поля,
+  переключатель режимов, градиентная кнопка), подключение в корневую навигацию.
+- Этап 2: entitlements Sign in with Apple, ассет ic_google, компонент AuroraField.
+- CI: наблюдаемость сборки (кэш SwiftPM, таймаут, лог ошибок в артефакт), лейбл macos-latest,
+  пакет GoogleMaps → googlemaps/ios-maps-sdk (GoogleMaps-iOS-SPM удалён из GitHub).

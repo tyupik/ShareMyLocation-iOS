@@ -60,6 +60,14 @@ targets:
           - location
         UILaunchScreen: {}
         CFBundleURLTypes:
-          # TODO: заменить на REVERSED_CLIENT_ID из GoogleService-Info.plist (этап 2)
+          # TODO: заменить на REVERSED_CLIENT_ID из GoogleService-Info.plist
+          # после добавления файла из Firebase Console (файл не в git)
           - CFBundleURLSchemes:
               - com.googleusercontent.apps.TODO_REVERSED_CLIENT_ID
+    # Sign in with Apple (правило App Store 4.8). .entitlements генерируется XcodeGen,
+    # в git не попадает; CI собирает unsigned — entitlements встраиваются при подписи
+    # (Sideloadly) и влияют только на рантайм.
+    entitlements:
+      path: ShareMyLocation/ShareMyLocation.entitlements
+      properties:
+        com.apple.developer.applesignin: Default

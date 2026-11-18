@@ -1,10 +1,10 @@
 import Factory
 import SwiftUI
 
-/// Корень приложения, порт AppRoot.kt в заглушечном виде этапа 1: пока сессия
-/// не проверена — индикатор загрузки; затем switch по AppUiState
-/// (Auth / ProfileSetup / Main). Реальные экраны подключают этапы 2–3;
-/// навигационные события (AppEffect) пойдут через них же.
+/// Корень приложения, порт AppRoot.kt: пока сессия не проверена — индикатор загрузки,
+/// затем switch по AppUiState (Auth / ProfileSetup / Main). Ветка Auth с этапа 2 —
+/// реальный AuthScreen (связь 1:1 с Android: AuthScreen(onSuccess = { AuthCompleted })));
+/// реальный ProfileSetup/Main подключают этапы 3–8.
 struct AppRootView: View {
     @State private var viewModel: AppViewModel
 
@@ -19,7 +19,7 @@ struct AppRootView: View {
                     .tint(AuroraColors.auroraIndigoLight)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if !viewModel.state.isAuthenticated {
-                placeholder("Экран входа — этап 2")
+                AuthScreen(onAuthenticated: { viewModel.onIntent(.authCompleted) })
             } else if viewModel.state.requiresOnboarding {
                 placeholder("Онбординг — этап 3")
             } else {
@@ -27,6 +27,19 @@ struct AppRootView: View {
             }
         }
         .background(AuroraColors.auroraBackground.ignoresSafeArea())
+        .task {
+            // Подписка на AppEffect: переключение ветки уже выполнено switch'ем по state
+            // (см. AppViewModel.resolveSession), поэтому обработчик — только лог,
+            // контракт one-off событий при этом не нарушается (допущение 7 плана этапа 2).
+            for await effect in viewModel.effects {
+                switch effect {
+                case .navigateToMain:
+                    print("AppRootView: navigateToMain")
+                case .navigateToProfileSetup:
+                    print("AppRootView: navigateToProfileSetup")
+                }
+            }
+        }
     }
 
     /// Текстовая заглушка ветки навигации до появления реального экрана.
