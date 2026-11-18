@@ -1,0 +1,19 @@
+# Xcode (генерируется XcodeGen из project.yml — не коммитится)
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+
+# XcodeGen
+.ds_store
+
+# SPM
+.build/
+
+# macOS
+.DS_Store
+
+# Sideloadly / локальная подпись
+*.ipa.tmp/
