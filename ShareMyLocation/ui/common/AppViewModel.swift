@@ -46,12 +46,6 @@ final class AppViewModel {
             Task {
                 await resolveSession(sendEffect: true)
             }
-        case .signOutRequested:
-            // Временная интеграция этапа 3 — удалить на этапе 4: signOut без разрешения
-            // состояния, observeAuthState сам переразрешит сессию (станет Auth).
-            Task {
-                await authInteractor.signOut()
-            }
         }
     }
 

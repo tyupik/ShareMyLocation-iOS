@@ -18,6 +18,10 @@ struct AuroraField: View {
     /// поведение существующих полей auth.
     var keyboardType: UIKeyboardType = .default
 
+    /// Колбэк отправки с клавиатуры (IME action Search у поля поиска друзей); nil —
+    /// поведение прежних полей auth/profile (аддитивно, этап 4).
+    var onSubmit: (() -> Void)? = nil
+
     @FocusState private var isFocused: Bool
 
     /// Видимость пароля — эфемерное UI-состояние поля (аналог rememberSaveable Android).
@@ -44,6 +48,9 @@ struct AuroraField: View {
                 .keyboardType(keyboardType)
                 .textInputAutocapitalization(autocapitalizationMode)
                 .autocorrectionDisabled(isAutocorrectionDisabled)
+                .onSubmit {
+                    onSubmit?()
+                }
                 .font(.auroraBodyLarge)
                 .foregroundStyle(AuroraColors.auroraText)
                 // Курсор и маркер выделения — акцентный индиго.
