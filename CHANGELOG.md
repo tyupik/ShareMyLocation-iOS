@@ -44,3 +44,9 @@
   с точным контрактом Firestore (update — merge ровно трёх полей); GroupEditorScreen
   (создание/редактирование: имя, чекбоксы друзей, удаление с диалогом) как sheet поверх
   MainScreen (temp-баннер удалён).
+- Этап 6: настройки шаринга — SharingSettingsScreen как sheet поверх Main (тумблер «Делиться
+  геопозицией» с запросом CoreLocation when-in-use и баннером при отказе, радио аудитории
+  «Все друзья»/«Выбранные люди и группы», чекбоксы людей/групп), автосохранение полным
+  снимком с оптимистичным откатом, подсказка при пустой CUSTOM; полный контракт
+  SharingRepository/Interactor (включая updateLocation/observeIsEnabled — задел этапа 8),
+  запрос прав через CLLocationManager с continuation-обёрткой.

@@ -13,11 +13,10 @@ private struct GroupEditorPayload: Identifiable {
 /// навбар-пилюля (MainBottomBar через safeAreaInset). Навигацию выполняет вызывающая сторона:
 /// экран сам не знает про корневой switch — выход из аккаунта уходит в MainViewModel
 /// (signOut → observeAuthState переразрешает сессию, корень показывает AuthScreen).
-/// Правка профиля — sheet внутри экрана; редактор групп — sheet поверх вкладок
-/// (GroupEditorScreen сам закрывается Effect'ом closed → обнуление payload).
-/// «Настройки шаринга появятся на этапе 6» — временный баннер до этапа 6.
+/// Правка профиля — sheet внутри экрана; редактор групп и настройки шаринга — sheet'ы
+/// поверх вкладок (GroupEditorScreen сам закрывается Effect'ом closed → обнуление payload).
 /// Порт 1:1 из Android MainScreen.kt; iOS-адаптации: карта — заглушка, лямбды сокращены
-/// против Android (onSignedOut не нужен, edit — sheet, шаринг — баннер).
+/// против Android (onSignedOut не нужен, edit/sharing — sheet'ы).
 struct MainScreen: View {
     @State private var viewModel: MainViewModel
 
@@ -27,12 +26,8 @@ struct MainScreen: View {
     /// Редактор групп: sheet поверх вкладок (эфемерное UI-состояние, не бизнес-состояние).
     @State private var groupEditorPayload: GroupEditorPayload?
 
-    /// Временный баннер «Настройки шаринга появятся на этапе 6» (до SharingSettingsScreen).
-    @State private var isSharingNoticeShown = false
-
-    /// Таймер автоскрытия баннера шаринга: отменяется при повторном показе,
-    /// чтобы ранний таймер не скрыл новый баннер раньше срока.
-    @State private var sharingNoticeHideTask: Task<Void, Never>?
+    /// Настройки шаринга: sheet поверх вкладок (эфемерное UI-состояние, не бизнес-состояние).
+    @State private var isSharingSettingsPresented = false
 
     init() {
         _viewModel = State(initialValue: Container.shared.mainViewModel())
@@ -49,7 +44,7 @@ struct MainScreen: View {
             case .profile:
                 ProfileScreen(
                     onEditProfile: { isEditPresented = true },
-                    onOpenSharingSettings: { showSharingNotice() },
+                    onOpenSharingSettings: { isSharingSettingsPresented = true },
                     onSignOut: { viewModel.onIntent(.signOutClicked) },
                 )
             }
@@ -75,15 +70,11 @@ struct MainScreen: View {
                 onClosed: { groupEditorPayload = nil },
             )
         }
-        .overlay(alignment: .top) {
-            if isSharingNoticeShown {
-                // Настройки шаринга появятся на этапе 6: временный авто-скрывающийся баннер.
-                ErrorBanner(text: "Настройки шаринга появятся на этапе 6")
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-            }
+        .sheet(isPresented: $isSharingSettingsPresented) {
+            // Своей кнопки закрытия у экрана нет: закрывается свайпом/тапом вне —
+            // флаг сбрасывается binding'ом; Task'и умирающей ViewModel безвредны.
+            SharingSettingsScreen()
         }
-        .animation(.easeInOut(duration: 0.2), value: isSharingNoticeShown)
         .task {
             for await effect in viewModel.effects {
                 switch effect {
@@ -94,18 +85,6 @@ struct MainScreen: View {
                     print("MainScreen: navigateToAuth")
                 }
             }
-        }
-    }
-
-    /// Показ баннера на ~2 секунды; авто-скрытие без DispatchQueue (только Task).
-    /// Повторный показ отменяет предыдущий таймер скрытия: без отмены более ранний
-    /// Task.sleep скрыл бы новый баннер раньше срока.
-    private func showSharingNotice() {
-        sharingNoticeHideTask?.cancel()
-        sharingNoticeHideTask = Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard !Task.isCancelled else { return }
-            isSharingNoticeShown = false
         }
     }
 }
