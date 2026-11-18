@@ -1,0 +1,65 @@
+# Конфигурация Xcode-проекта (XcodeGen). .xcodeproj не коммитится, генерируется CI.
+name: ShareMyLocation
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.0.0
+  GoogleMaps:
+    url: https://github.com/googlemaps/GoogleMaps-iOS-SPM
+    from: 10.0.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 8.0.0
+  Factory:
+    url: https://github.com/hmlongco/Factory
+    from: 2.3.0
+  Mantis:
+    url: https://github.com/guoyingtao/Mantis
+    from: 2.18.0
+
+targets:
+  ShareMyLocation:
+    type: application
+    platform: iOS
+    sources:
+      # GoogleService-Info.plist не в git: когда файл появится в ShareMyLocation/Resources,
+      # он попадёт в resources этим же сканом (папка Resources → build phase resources).
+      # Отдельная запись пути не нужна: иначе тот же файл добавится дважды
+      # («Multiple commands produce 'GoogleService-Info.plist'»).
+      - path: ShareMyLocation
+    dependencies:
+      - package: Firebase
+        products:
+          - FirebaseAuth
+          - FirebaseFirestore
+          - FirebaseAnalytics
+      - package: GoogleMaps
+        product: GoogleMaps
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      - package: Factory
+      - package: Mantis
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ru.tyupik.sharemylocation
+        # Language mode Swift 5: на свежем Xcode дефолт может быть 6.
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: ShareMyLocation/Info.plist
+      properties:
+        NSLocationWhenInUseUsageDescription: "Приложение показывает ваше местоположение друзьям, пока включён шаринг геолокации."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "Фоновой шаринг геолокации: друзья видят ваше местоположение в реальном времени, даже когда приложение закрыто."
+        UIBackgroundModes:
+          - location
+        UILaunchScreen: {}
+        CFBundleURLTypes:
+          # TODO: заменить на REVERSED_CLIENT_ID из GoogleService-Info.plist (этап 2)
+          - CFBundleURLSchemes:
+              - com.googleusercontent.apps.TODO_REVERSED_CLIENT_ID

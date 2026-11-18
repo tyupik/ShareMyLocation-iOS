@@ -9,6 +9,13 @@ xcuserdata/
 # XcodeGen
 .ds_store
 
+# Info.plist генерируется XcodeGen из project.yml
+ShareMyLocation/Info.plist
+
+# Локальные артефакты упаковки .ipa
+Payload/
+*.ipa
+
 # SPM
 .build/
 

@@ -9,3 +9,12 @@
 
 - Каркас репозитория: AGENTS.md, пайплайн разработки (dev-pipeline + агенты),
   план порта `docs/port-plan.md`, ресурсы (шрифты Manrope, стиль карты AURORA).
+- Этап 1: каркас iOS-приложения — `project.yml` (XcodeGen, iOS 17, SwiftPM: Firebase,
+  GoogleMaps, GoogleSignIn, Factory, Mantis), точка входа `@main` с защитой на отсутствие
+  `GoogleService-Info.plist`, тема AURORA 1:1 из Android (цвета, типографика Manrope,
+  формы, градиенты), 7 общих компонентов (GlassCard, GradientPrimaryButton и др.),
+  минимальный срез auth (репозиторий/интерактор на FirebaseAuth), корневая MVI-пара
+  AppContract/AppViewModel с заглушками веток навигации.
+- CI: workflow `ios-build.yml` — сборка unsigned `.ipa` на macos-runner
+  (xcodegen → xcodebuild → артефакт `ShareMyLocation-unsigned-ipa`).
+- Нормализация PostScript-имён шрифтов Manrope (все 5 ttf несли имя «Manrope-ExtraLight»).
