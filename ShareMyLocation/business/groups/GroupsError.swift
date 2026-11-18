@@ -1,10 +1,19 @@
 /// Типизированные ошибки фичи «Группы»; замаплены из Firebase в data-слое.
-/// Read-срез этапа 4: только ошибки realtime-чтения; EmptyName/NameTooLong/GroupNotFound
-/// появятся вместе с редактором групп (этап 5).
-/// Порт частичный из Android GroupsError.kt.
+/// Порт 1:1 из Android GroupsError.kt.
 enum GroupsError {
     /// Нет сети или таймаут (Firestore unavailable/deadlineExceeded, сеть).
     case networkUnavailable
+
+    /// Имя группы после trim пустое.
+    case emptyName
+
+    /// Имя группы длиннее 50 символов.
+    case nameTooLong
+
+    /// Группа не найдена или не принадлежит текущему пользователю: правило groups читает
+    /// resource.data, поэтому несуществующий документ и чужая группа дают PERMISSION_DENIED,
+    /// NOT_FOUND мапится туда же — для клиента это одно состояние.
+    case groupNotFound
 
     /// Всё, что не удалось сопоставить с конкретной ошибкой; reason — код/сообщение источника.
     case unexpected(String?)

@@ -1,31 +1,37 @@
 import Factory
 import SwiftUI
 
+/// Payload sheet'а редактора группы: обёртка groupId для sheet(item:) (эфемерное UI-состояние
+/// экрана, приходит из Effect openGroupEditor FriendsScreen — в state его класть запрещено
+/// правилами MVI). nil groupId — режим создания.
+private struct GroupEditorPayload: Identifiable {
+    let id = UUID()
+    let groupId: String?
+}
+
 /// Главный экран-контейнер: вкладки Карта (заглушка этапа 7), Друзья, Профиль и кастомный
 /// навбар-пилюля (MainBottomBar через safeAreaInset). Навигацию выполняет вызывающая сторона:
 /// экран сам не знает про корневой switch — выход из аккаунта уходит в MainViewModel
-/// (signOut → observeAuthState переразрешает сессию, корень показывает AuthScreen),
-/// а редактор групп на этапе 4 — временный баннер (этап 5 подключит реальный editor).
-/// Правка профиля — sheet внутри экрана. Порт 1:1 из Android MainScreen.kt;
-/// iOS-адаптации этапа 4: карта — заглушка, лямбды сокращены против Android
-/// (onSignedOut не нужен, edit — sheet, шаринг/группы — баннеры).
+/// (signOut → observeAuthState переразрешает сессию, корень показывает AuthScreen).
+/// Правка профиля — sheet внутри экрана; редактор групп — sheet поверх вкладок
+/// (GroupEditorScreen сам закрывается Effect'ом closed → обнуление payload).
+/// «Настройки шаринга появятся на этапе 6» — временный баннер до этапа 6.
+/// Порт 1:1 из Android MainScreen.kt; iOS-адаптации: карта — заглушка, лямбды сокращены
+/// против Android (onSignedOut не нужен, edit — sheet, шаринг — баннер).
 struct MainScreen: View {
     @State private var viewModel: MainViewModel
 
     /// Правка профиля — sheet поверх вкладки (эфемерное UI-состояние, не бизнес-состояние).
     @State private var isEditPresented = false
 
-    /// Временный баннер «Редактор групп появится на этапе 5» (до подключения GroupEditor).
-    @State private var isGroupsNoticeShown = false
-
-    /// Таймер автоскрытия баннера групп: отменяется при повторном показе,
-    /// чтобы ранний таймер не скрыл новый баннер раньше срока.
-    @State private var groupsNoticeHideTask: Task<Void, Never>?
+    /// Редактор групп: sheet поверх вкладок (эфемерное UI-состояние, не бизнес-состояние).
+    @State private var groupEditorPayload: GroupEditorPayload?
 
     /// Временный баннер «Настройки шаринга появятся на этапе 6» (до SharingSettingsScreen).
     @State private var isSharingNoticeShown = false
 
-    /// Таймер автоскрытия баннера шаринга: аналогично отменяется при повторном показе.
+    /// Таймер автоскрытия баннера шаринга: отменяется при повторном показе,
+    /// чтобы ранний таймер не скрыл новый баннер раньше срока.
     @State private var sharingNoticeHideTask: Task<Void, Never>?
 
     init() {
@@ -38,8 +44,8 @@ struct MainScreen: View {
             case .map:
                 MainMapStub()
             case .friends:
-                // Редактор групп появится на этапе 5: пока запрос редактора показывает баннер.
-                FriendsScreen(onOpenGroupEditor: { _ in showGroupsNotice() })
+                // Редактор групп открывается sheet'ом поверх Main (Effect → payload → sheet).
+                FriendsScreen(onOpenGroupEditor: { groupEditorPayload = GroupEditorPayload(groupId: $0) })
             case .profile:
                 ProfileScreen(
                     onEditProfile: { isEditPresented = true },
@@ -61,13 +67,15 @@ struct MainScreen: View {
         .sheet(isPresented: $isEditPresented) {
             ProfileSetupScreen(isEditMode: true, onCompleted: { isEditPresented = false })
         }
+        .sheet(item: $groupEditorPayload) { payload in
+            GroupEditorScreen(
+                groupId: payload.groupId,
+                // Закрытие по Effect closed; свайп-закрытие sheet'а обнуляет payload без .closed —
+                // подписка эффектов умирает вместе с экраном, рассинхрона нет.
+                onClosed: { groupEditorPayload = nil },
+            )
+        }
         .overlay(alignment: .top) {
-            if isGroupsNoticeShown {
-                // Временный авто-скрывающийся баннер до этапа 5.
-                ErrorBanner(text: "Редактор групп появится на этапе 5")
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-            }
             if isSharingNoticeShown {
                 // Настройки шаринга появятся на этапе 6: временный авто-скрывающийся баннер.
                 ErrorBanner(text: "Настройки шаринга появятся на этапе 6")
@@ -75,7 +83,6 @@ struct MainScreen: View {
                     .padding(.top, 8)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isGroupsNoticeShown)
         .animation(.easeInOut(duration: 0.2), value: isSharingNoticeShown)
         .task {
             for await effect in viewModel.effects {
@@ -93,16 +100,6 @@ struct MainScreen: View {
     /// Показ баннера на ~2 секунды; авто-скрытие без DispatchQueue (только Task).
     /// Повторный показ отменяет предыдущий таймер скрытия: без отмены более ранний
     /// Task.sleep скрыл бы новый баннер раньше срока.
-    private func showGroupsNotice() {
-        groupsNoticeHideTask?.cancel()
-        groupsNoticeHideTask = Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard !Task.isCancelled else { return }
-            isGroupsNoticeShown = false
-        }
-    }
-
-    /// Аналог showGroupsNotice для баннера настроек шаринга.
     private func showSharingNotice() {
         sharingNoticeHideTask?.cancel()
         sharingNoticeHideTask = Task {
