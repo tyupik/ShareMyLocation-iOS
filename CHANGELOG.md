@@ -50,3 +50,9 @@
   снимком с оптимистичным откатом, подсказка при пустой CUSTOM; полный контракт
   SharingRepository/Interactor (включая updateLocation/observeIsEnabled — задел этапа 8),
   запрос прав через CLLocationManager с continuation-обёрткой.
+- Этап 7: live-карта — realtime-конвейер (друзья → настройки шаринга → видимые uid → точки
+  + тик 5 с «как давно»), гдеIn-чанки по 10 с fallback на по-документные слушатели при
+  permission-denied, Google Maps SDK с тёмным стилем AURORA, маркеры-аватары с неоновыми
+  кольцами (цвет детерминирован по uid портом Java hashCode), «Показать меня», слежение
+  камеры zoom 16, чип «На карте: N», sheet-список; без API-ключа — заглушка
+  (ключ подставляется локально в Info.plist GMSApiKeyKey, не в git).

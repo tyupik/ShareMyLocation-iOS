@@ -9,13 +9,13 @@ private struct GroupEditorPayload: Identifiable {
     let groupId: String?
 }
 
-/// Главный экран-контейнер: вкладки Карта (заглушка этапа 7), Друзья, Профиль и кастомный
-/// навбар-пилюля (MainBottomBar через safeAreaInset). Навигацию выполняет вызывающая сторона:
-/// экран сам не знает про корневой switch — выход из аккаунта уходит в MainViewModel
-/// (signOut → observeAuthState переразрешает сессию, корень показывает AuthScreen).
-/// Правка профиля — sheet внутри экрана; редактор групп и настройки шаринга — sheet'ы
-/// поверх вкладок (GroupEditorScreen сам закрывается Effect'ом closed → обнуление payload).
-/// Порт 1:1 из Android MainScreen.kt; iOS-адаптации: карта — заглушка, лямбды сокращены
+/// Главный экран-контейнер: вкладки Карта (MapScreen, Google Maps), Друзья, Профиль
+/// и кастомный навбар-пилюля (MainBottomBar через safeAreaInset). Навигацию выполняет
+/// вызывающая сторона: экран сам не знает про корневой switch — выход из аккаунта уходит
+/// в MainViewModel (signOut → observeAuthState переразрешает сессию, корень показывает
+/// AuthScreen). Правка профиля — sheet внутри экрана; редактор групп и настройки шаринга —
+/// sheet'ы поверх вкладок (GroupEditorScreen сам закрывается Effect'ом closed → обнуление
+/// payload). Порт 1:1 из Android MainScreen.kt; iOS-адаптации: лямбды сокращены
 /// против Android (onSignedOut не нужен, edit/sharing — sheet'ы).
 struct MainScreen: View {
     @State private var viewModel: MainViewModel
@@ -37,7 +37,7 @@ struct MainScreen: View {
         ZStack {
             switch viewModel.state.selectedTab {
             case .map:
-                MainMapStub()
+                MapScreen()
             case .friends:
                 // Редактор групп открывается sheet'ом поверх Main (Effect → payload → sheet).
                 FriendsScreen(onOpenGroupEditor: { groupEditorPayload = GroupEditorPayload(groupId: $0) })
@@ -50,8 +50,8 @@ struct MainScreen: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Нижняя навигация-пилюля: контент не заезжает под неё (карта — этап 7 добавит
-        // свой contentPadding поверх safeAreaInset).
+        // Нижняя навигация-пилюля: контент не заезжает под неё (карта — этап 7 —
+        // уважает safe-area-inset; edge-to-edge и отступы — этап 9).
         .safeAreaInset(edge: .bottom) {
             MainBottomBar(
                 selectedTab: viewModel.state.selectedTab,

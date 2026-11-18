@@ -57,6 +57,9 @@ targets:
         NSLocationWhenInUseUsageDescription: "Приложение показывает ваше местоположение друзьям, пока включён шаринг геолокации."
         NSLocationAlwaysAndWhenInUseUsageDescription: "Фоновой шаринг геолокации: друзья видят ваше местоположение в реальном времени, даже когда приложение закрыто."
         NSCameraUsageDescription: "Приложение использует камеру, чтобы сфотографировать аватар профиля."
+        # Google Maps SDK: ключ карты (MapApiKey читает его из Info.plist).
+        # Заменить локально при сборке; CI собирает с плейсхолдером → вкладка показывает заглушку.
+        GMSApiKeyKey: TODO_MAPS_API_KEY
         UIBackgroundModes:
           - location
         UILaunchScreen: {}

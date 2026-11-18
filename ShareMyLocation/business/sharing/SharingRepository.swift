@@ -41,4 +41,13 @@ protocol SharingRepository {
      Ошибка слушателя (сеть, PERMISSION_DENIED после logout, смерть слушателя) закрывает поток.
      */
     func observeIsEnabled() -> AsyncStream<Bool>
+
+    /**
+     Realtime-настройки шаринга произвольного пользователя (этап 7, карта видимости):
+     документ sharingSettings/{uid}. Deny (чужой документ)/NOT_FOUND/!exists — не ошибка:
+     доставляется `SharingSettings.defaultFor` («пользователь не делится локацией»);
+     ошибка слушателя (сеть, смерть слушателя) завершает поток — перезапуск возможен
+     по повторной подписке (каждый ScreenShown).
+     */
+    func observeSettingsByUid(uid: String) -> AsyncStream<SharingSettings>
 }

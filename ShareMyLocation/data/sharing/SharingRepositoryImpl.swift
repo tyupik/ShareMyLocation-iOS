@@ -203,6 +203,47 @@ final class SharingRepositoryImpl: SharingRepository {
         }
     }
 
+    /// Realtime-настройки шаринга произвольного пользователя: по-документный слушатель
+    /// sharingSettings/{uid} (этап 7, карта видимости). Deny (не-друг)/NOT_FOUND/!exists —
+    /// НЕ ошибка, доставляется дефолт «не шарит»; ошибка слушателя завершает поток.
+    /// Порт 1:1 FirebaseBackend.listenSharingSettingsByUid + isSharingAccessDenied
+    /// (паттерн observeIsEnabled: onTermination → listener.remove()).
+    func observeSettingsByUid(uid: String) -> AsyncStream<SharingSettings> {
+        AsyncStream(bufferingPolicy: .unbounded) { continuation in
+            guard AuthRepositoryImpl.isFirebaseConfigured, Auth.auth().currentUser != nil else {
+                print("SharingRepositoryImpl.listenSharingSettingsByUid: нет Firebase или пользователя")
+                continuation.finish()
+                return
+            }
+            print("SharingRepositoryImpl.listenSharingSettingsByUid: start")
+            let listener = Firestore.firestore()
+                .collection(Self.SHARING_SETTINGS_COLLECTION)
+                .document(uid)
+                .addSnapshotListener { snapshot, error in
+                    if let error {
+                        print("SharingRepositoryImpl.listenSharingSettingsByUid: error — \(error)")
+                        if Self.isSharingAccessDenied(error) {
+                            // Deny — не ошибка: чужой документ трактуется как «не шарит».
+                            continuation.yield(SharingSettings.defaultFor(uid: uid))
+                            return
+                        }
+                        // Слушатель после ошибки терминально мёртв — завершаем поток;
+                        // перезапуск возможен по повторной подписке (ScreenShown).
+                        continuation.finish()
+                        return
+                    }
+                    guard let snapshot, snapshot.exists else {
+                        continuation.yield(SharingSettings.defaultFor(uid: uid))
+                        return
+                    }
+                    continuation.yield(Self.toSettings(snapshot, uid: uid))
+                }
+            continuation.onTermination = { _ in
+                listener.remove()
+            }
+        }
+    }
+
     // ------------------------------------------------------------------
     // Маппинг документов и ошибок (порт FirebaseBackend).
     // ------------------------------------------------------------------
