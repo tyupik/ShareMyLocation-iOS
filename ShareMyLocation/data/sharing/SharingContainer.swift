@@ -17,4 +17,15 @@ extension Container {
             LocationPermissionRequester()
         }.singleton
     }
+
+    /// Фоновый движок отправки геолокации (этап 8). Синглтон: живой CLLocationManager
+    /// и активная подписка на обновления не должны пересоздаваться оркестратором.
+    var locationSharingEngine: Factory<LocationSharingEngine> {
+        self {
+            LocationSharingEngineImpl(
+                sharingRepository: self.sharingRepository(),
+                locationPermissionRequester: self.locationPermissionRequester(),
+            )
+        }.singleton
+    }
 }

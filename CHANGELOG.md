@@ -56,3 +56,10 @@
   кольцами (цвет детерминирован по uid портом Java hashCode), «Показать меня», слежение
   камеры zoom 16, чип «На карте: N», sheet-список; без API-ключа — заглушка
   (ключ подставляется локально в Info.plist GMSApiKeyKey, не в git).
+- Этап 8: фоновой движок и уведомления — LocationSharingEngine на CoreLocation
+  (allowsBackgroundLocationUpdates, throttle 5 с, merge-write locations/{uid}, гейт прав
+  и сессии, стоп при отзыве прав/PERMISSION_DENIED×2), оркестрация от realtime
+  observeIsEnabled в AppViewModel с восстановлением при запуске, явный стоп перед signOut;
+  NotificationWatcher (заявки в друзья + «друг начал шарить», дедуп/baseline/retry 30 с) →
+  локальные уведомления UNUserNotificationCenter с категориями friend_requests/friend_sharing;
+  запрос права уведомлений при первом входе в Main.

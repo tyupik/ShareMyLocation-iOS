@@ -17,8 +17,9 @@ struct MainUiState {
     static let initial = MainUiState()
 }
 
-/// Действия пользователя. Порт 1:1 из Android MainIntent без уведомлений/прав
-/// (NotificationsPermissionResult — этап 8).
+/// Действия пользователя. Порт 1:1 из Android MainIntent без NotificationsPermissionResult:
+/// запрос права на уведомления выполняется во ViewModel системным диалогом
+/// (requestAuthorization) — UI не участвует, отдельный Intent/Effect не нужен.
 enum MainIntent {
     /// Пользователь выбрал вкладку в нижней навигации.
     case tabSelected(MainTab)
@@ -27,8 +28,8 @@ enum MainIntent {
     case signOutClicked
 }
 
-/// One-off события экрана. Порт 1:1 из Android MainEffect без запроса права
-/// на уведомления (RequestNotificationsPermission — этап 8).
+/// One-off события экрана. Порт 1:1 из Android MainEffect без RequestNotificationsPermission:
+/// диалог запроса права системный и показывается напрямую из ViewModel, эффект не нужен.
 enum MainEffect {
     /// Выход выполнен — возвращаемся на экран аутентификации.
     case navigateToAuth

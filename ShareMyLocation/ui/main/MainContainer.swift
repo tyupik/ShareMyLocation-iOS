@@ -8,6 +8,8 @@ extension Container {
             MainViewModel(
                 authInteractor: self.authInteractor(),
                 friendsInteractor: self.friendsInteractor(),
+                locationSharingEngine: self.locationSharingEngine(),
+                notificationPermissionController: self.notificationPermissionController(),
             )
         }
     }

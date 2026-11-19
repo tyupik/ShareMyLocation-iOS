@@ -8,6 +8,8 @@ extension Container {
             AppViewModel(
                 authInteractor: self.authInteractor(),
                 profileInteractor: self.profileInteractor(),
+                sharingInteractor: self.sharingInteractor(),
+                locationSharingEngine: self.locationSharingEngine(),
                 appUiConverter: self.appUiConverter(),
             )
         }
