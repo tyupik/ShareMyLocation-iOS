@@ -63,3 +63,8 @@
   NotificationWatcher (заявки в друзья + «друг начал шарить», дедуп/baseline/retry 30 с) →
   локальные уведомления UNUserNotificationCenter с категориями friend_requests/friend_sharing;
   запрос права уведомлений при первом входе в Main.
+- Этап 9: полировка AURORA — навбар-пилюля с блюром (.ultraThinMaterial + tint 0.55), пружинное
+  перекатывание (damping 0.75) и пульс 0.94→1.0 выбранного таба, badge auroraOnDanger;
+  edge-to-edge карта с mapPadding (нативные контролы Google над пилюлей), зазоры 132/28;
+  поля ввода 56 pt со сплошной danger-рамкой ошибки; lineSpacing-калибровка типографики;
+  двойное свечение фона снято; sheet кропа аватара защищён от свайп-закрытия.

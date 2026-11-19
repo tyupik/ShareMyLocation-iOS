@@ -3,8 +3,9 @@ import UIKit
 
 /// Стеклянное поле ввода AURORA: аналог Android auroraOutlinedTextFieldColors
 /// (стекло + рамка; фокус/ошибка меняют рамку, курсор и метку — акцент).
-/// Метка статичная над полем (SwiftUI не имеет M3 floating label; точная подгонка —
-/// этап 9). `errorText` выводится под полем и подсвечивает рамку danger-цветом.
+/// Метка статичная над полем (SwiftUI не имеет M3 floating label); высота 56
+/// (M3 OutlinedTextField), ошибка — сплошная danger-рамка и danger-текст (полировка
+/// этапа 9). `errorText` выводится под полем и подсвечивает рамку danger-цветом.
 /// `isSecure` включает SecureField с кнопкой-глазом.
 struct AuroraField: View {
     let title: String
@@ -67,7 +68,8 @@ struct AuroraField: View {
                 }
             }
             .padding(.horizontal, 16)
-            .frame(minHeight: 44)
+            // 56 — высота M3 OutlinedTextField Android.
+            .frame(minHeight: 56)
             .background(
                 RoundedRectangle(cornerRadius: AuroraShapes.medium)
                     .fill(AuroraColors.auroraGlass),
@@ -79,15 +81,16 @@ struct AuroraField: View {
             if let errorText {
                 Text(errorText)
                     .font(.auroraBodySmall)
-                    .foregroundStyle(AuroraColors.auroraOnErrorContainer)
+                    .lineSpacing(AuroraTypography.BODY_SMALL_LINE_SPACING)
+                    .foregroundStyle(AuroraColors.auroraDanger)
             }
         }
     }
 
-    /// Рамка: ошибка → danger, фокус → акцент, обычное состояние → стекло.
+    /// Рамка: ошибка → сплошной danger (Android isError), фокус → акцент, обычное → стекло.
     private var borderColor: Color {
         if errorText != nil {
-            return AuroraColors.auroraDangerBorder
+            return AuroraColors.auroraDanger
         }
         return isFocused ? AuroraColors.auroraIndigoLight : AuroraColors.auroraGlassBorder
     }

@@ -13,6 +13,7 @@ struct ErrorBanner: View {
                 HStack {
                     Text(text)
                         .font(.auroraBodyMedium)
+                        .lineSpacing(AuroraTypography.BODY_MEDIUM_LINE_SPACING)
                         .foregroundStyle(AuroraColors.auroraOnErrorContainer)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button {
@@ -30,6 +31,7 @@ struct ErrorBanner: View {
             } else {
                 Text(text)
                     .font(.auroraBodyMedium)
+                    .lineSpacing(AuroraTypography.BODY_MEDIUM_LINE_SPACING)
                     .foregroundStyle(AuroraColors.auroraOnErrorContainer)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)

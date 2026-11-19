@@ -12,7 +12,10 @@ struct AppRootView: View {
     }
 
     var body: some View {
-        AuroraBackdrop {
+        // Сплошной фон здесь; свечения нет: каждый экран оборачивает себя в AuroraBackdrop сам
+        // (Android: backdrop ТОЛЬКО на самих экранах; без этого — двойное свечение на
+        // Auth/Profile/Friends/ProfileSetup).
+        Group {
             if !viewModel.state.isSessionResolved {
                 ProgressView()
                     .tint(AuroraColors.auroraIndigoLight)

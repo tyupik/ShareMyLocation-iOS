@@ -44,6 +44,7 @@ struct SharingSettingsScreen: View {
                 // (авто-скрытие без DispatchQueue).
                 Text("Сейчас локацию не увидит никто: выберите людей и группы или включите \"Все друзья\"")
                     .font(.auroraBodyMedium)
+                    .lineSpacing(AuroraTypography.BODY_MEDIUM_LINE_SPACING)
                     .foregroundStyle(AuroraColors.auroraText)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

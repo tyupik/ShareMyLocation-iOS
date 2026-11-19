@@ -100,6 +100,8 @@ struct ProfileSetupScreen: View {
                 onCropped: { viewModel.onIntent(.avatarCropConfirmed($0)) },
                 onCancelled: { viewModel.onIntent(.avatarCropCancelled) },
             )
+            // Случайный свайп не должен выбрасывать из кропа (долг этапа 3, полировка этапа 9).
+            .interactiveDismissDisabled(true)
         }
     }
 }

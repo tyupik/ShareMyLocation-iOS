@@ -50,8 +50,8 @@ struct MainScreen: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Нижняя навигация-пилюля: контент не заезжает под неё (карта — этап 7 —
-        // уважает safe-area-inset; edge-to-edge и отступы — этап 9).
+        // Нижняя навигация-пилюля: контент не заезжает под неё; карта — edge-to-edge (залезает под пилюлю,
+        // отступы нативных контролов — mapPadding в AuroraMapView), остальные вкладки уважают safe area.
         .safeAreaInset(edge: .bottom) {
             MainBottomBar(
                 selectedTab: viewModel.state.selectedTab,

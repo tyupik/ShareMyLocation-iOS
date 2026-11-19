@@ -27,6 +27,7 @@ struct LoadError: View {
         VStack {
             Text(text)
                 .font(.auroraBodyMedium)
+                .lineSpacing(AuroraTypography.BODY_MEDIUM_LINE_SPACING)
                 .foregroundStyle(AuroraColors.auroraTextMuted)
                 .multilineTextAlignment(.center)
             Button {

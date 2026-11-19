@@ -29,6 +29,12 @@ enum AuroraTypography {
     /// Отрицательный трекинг заголовков ExtraBold (макет −0.02em): применяется на `Text`
     /// через `.tracking(AuroraTypography.HEADLINE_TRACKING)`.
     static let HEADLINE_TRACKING: CGFloat = -0.5
+
+    /// Межстрочный интервал body-стилей (lineHeight − размер из M3-таблицы выше): применяется
+    /// на многострочных `Text` через `.lineSpacing(...)`; на однострочных — no-op.
+    static let BODY_SMALL_LINE_SPACING: CGFloat = 4   // 16 − 12
+    static let BODY_MEDIUM_LINE_SPACING: CGFloat = 6  // 20 − 14
+    static let BODY_LARGE_LINE_SPACING: CGFloat = 8   // 24 − 16
 }
 
 /// Aurora-стили текста. Системные `Font`-расширения не переопределяются.

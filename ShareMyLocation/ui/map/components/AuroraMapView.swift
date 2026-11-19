@@ -8,6 +8,8 @@ import SwiftUI
  маркеры-аватары видимых друзей с неоновыми кольцами (diff по uid: добавить/сдвинуть/
  сменить иконку/удалить), синяя точка своего местоположения только при фактических правах,
  слежение камеры zoom 16 (без выбора — на свою точку, при выборе — за другом).
+ `mapPadding` — порт contentPadding Android (GMSMapView.padding): карта рисуется
+ edge-to-edge, а нативные zoom-контролы/компас/логотип Google поднимаются выше навбара.
  Слежение НЕ отменяется ручным жестом карты — как в Android (следующий тик вернёт камеру).
  Аналог GoogleMap + CameraPositionState + MapFriendMarkers Android-версии.
  */
@@ -16,6 +18,9 @@ struct AuroraMapView: UIViewRepresentable {
     let selectedUid: String?
     let myLocation: MyLocationUiModel?
     let isMyLocationEnabled: Bool
+    /// Отступы карты (аналог contentPadding Android): поднимают компас, логотип Google
+    /// и zoom-контролы над системными insets и плавающим навбаром.
+    let mapPadding: UIEdgeInsets
     let onFriendTap: (String) -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -37,6 +42,9 @@ struct AuroraMapView: UIViewRepresentable {
         // Встроенная кнопка центровки выключена — центровка через MapLocateMeButton
         // (снимает слежение), порт MapUiSettings(myLocationButtonEnabled = false) Android.
         mapView.settings.myLocationButton = false
+        // TODO: проверить на CI — GMSMapView.padding (UIEdgeInsets): поднимает компас,
+        // логотип Google и zoom-контролы, не сжимая саму карту (порт contentPadding Android).
+        mapView.padding = mapPadding
         mapView.delegate = context.coordinator
         return mapView
     }
@@ -48,6 +56,7 @@ struct AuroraMapView: UIViewRepresentable {
             selectedUid: selectedUid,
             myLocation: myLocation,
             isMyLocationEnabled: isMyLocationEnabled,
+            mapPadding: mapPadding,
         )
     }
 
@@ -74,18 +83,22 @@ struct AuroraMapView: UIViewRepresentable {
             self.onFriendTap = onFriendTap
         }
 
-        /** Единая точка применения состояния (1) права/своя точка, (2) маркеры, (3) камера. */
+        /** Единая точка применения состояния (1) права/своя точка, (2) отступы, (3) маркеры, (4) камера. */
         func apply(
             to mapView: GMSMapView,
             friends: [VisibleFriendUiModel],
             selectedUid: String?,
             myLocation: MyLocationUiModel?,
             isMyLocationEnabled: Bool,
+            mapPadding: UIEdgeInsets,
         ) {
             // Синяя точка своего местоположения — только при фактических грантах.
             // TODO: проверить на CI — isMyLocationEnabled без прав падает в Maps SDK.
             if mapView.isMyLocationEnabled != isMyLocationEnabled {
                 mapView.isMyLocationEnabled = isMyLocationEnabled
+            }
+            if mapView.padding != mapPadding {
+                mapView.padding = mapPadding
             }
             syncMarkers(friends: friends, mapView: mapView)
             syncCamera(mapView: mapView, friends: friends, selectedUid: selectedUid, myLocation: myLocation)
