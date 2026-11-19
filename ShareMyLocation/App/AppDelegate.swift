@@ -1,5 +1,6 @@
 import Factory
 import FirebaseCore
+import GoogleSignIn
 import UIKit
 import UserNotifications
 
@@ -9,7 +10,8 @@ import UserNotifications
  при открытом приложении. Если GoogleService-Info.plist отсутствует в бандле
  (файл не в git), приложение не крашится — работает без Firebase, сессии нет
  (см. AuthRepositoryImpl.isFirebaseConfigured); наблюдатель в этом случае сам не
- активирует Firestore-слушателей.
+ активирует Firestore-слушателей. При наличии plist — дополнительно конфигурирует
+ GoogleSignIn из CLIENT_ID (см. configureGoogleSignIn).
  */
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(
@@ -22,8 +24,26 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             return true
         }
         FirebaseApp.configure()
+        configureGoogleSignIn()
         startAppServices()
         return true
+    }
+
+    /// Конфигурация GoogleSignIn из внедрённого в .ipa GoogleService-Info.plist (этап 10):
+    /// GoogleSignIn-iOS 7+ НЕ подхватывает plist автоматически (в отличие от Firebase),
+    /// без явного GIDConfiguration кнопка Google всегда возвращает notConfigured.
+    /// Файла нет или в нём нет CLIENT_ID — конфигурацию не задаём (notConfigured сохраняется).
+    // TODO: проверить на CI — NSDictionary(contentsOf:) читает и XML, и бинарный plist;
+    // GIDConfiguration(clientID:) из GoogleSignIn-iOS 8.
+    private func configureGoogleSignIn() {
+        guard
+            let url = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist"),
+            let plist = NSDictionary(contentsOf: url) as? [String: Any],
+            let clientID = plist["CLIENT_ID"] as? String
+        else {
+            return
+        }
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
     }
 
     /// Запуск process-scoped сервисов приложения (единый путь — с Firebase и без):

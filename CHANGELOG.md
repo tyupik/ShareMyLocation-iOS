@@ -68,3 +68,21 @@
   edge-to-edge карта с mapPadding (нативные контролы Google над пилюлей), зазоры 132/28;
   поля ввода 56 pt со сплошной danger-рамкой ошибки; lineSpacing-калибровка типографики;
   двойное свечение фона снято; sheet кропа аватара защищён от свайп-закрытия.
+- Этап 10: инструкция сайдлоада `docs/sideload.md` — проверенная установка unsigned `.ipa` с CI
+  на iPhone через Sideloadly с бесплатным Apple ID на Windows: драйверы Apple (веб-iTunes
+  вместо Store-версий), модификация `.ipa` до подписи (внедрение `GoogleService-Info.plist`,
+  ключ карты `GMSApiKeyKey` и URL scheme Google — в 7-Zip или Python-скриптом с plistlib),
+  доверие разработчику, переподпись каждые 7 дней без потери данных, честные ограничения
+  (3 приложения, 10 App ID, Sign in with Apple может не завестись) и таблица типичных ошибок.
+
+### Изменено
+
+- Этап 10: README актуализирован — статус «порт завершён, все 9 функциональных этапов,
+  паритет с Android v1.1», раздел «Возможности», стек дополнен геолокацией
+  (CoreLocation + LocationSharingEngine) и локальными уведомлениями, сборка описана через
+  артефакт `ShareMyLocation-unsigned-ipa`, установка — ссылка на `docs/sideload.md`.
+- Этап 10: AppDelegate конфигурирует GoogleSignIn для сайдлоад-сборок — если в бандле есть
+  `GoogleService-Info.plist`, из него читается `CLIENT_ID` и задаётся
+  `GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID:)` (GoogleSignIn-iOS 7+
+  не подхватывает plist автоматически — кнопка Google всегда возвращала notConfigured);
+  без plist поведение прежнее.
